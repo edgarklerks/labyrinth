@@ -24,14 +24,12 @@ Go has actually a quite nice module system, which I don't use at all. I don't ha
 
 Add a sprite for the robot when it moves. It is a bit boring now.
 
-##
-
 # Ideas
 
 ## 3 dimensional maze
 
 It is rather easy to make the maze '3d'. This will add portals, which the user can activate (moving the user backward of forward). It will let you jump to another maze.
-It sits then on a 3-torus (that is when you take a cube and glue the sides together). It has 4 dimensions.
+It sits then on a 3-torus (that is when you take a cube and glue the sides together). A 3-torus lives in 4 dimensions.
 
 ## Cut some walls
 
