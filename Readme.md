@@ -8,6 +8,17 @@ a lot of things simpler.
 
 It is written in SDL and go and the maze itself already works including the robot (you can move it around). Collision with walls works. However that is about it :)
 
+# Building
+
+	source env.sh
+	go build
+
+# Playing
+
+	./labyrinth <number>
+
+The number is a seed to the random generator.
+
 # Todo
 
 ## Language 1
