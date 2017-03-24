@@ -9,6 +9,7 @@ type Game struct {
 	render *sdl.Renderer
 	sizex int
 	sizey int
+	maze *Maze
 }
 
 type Cell uint64
@@ -118,6 +119,7 @@ func InitGame(sizex int, sizey int) *Game {
 		render: render,
 		sizex: sizex,
 		sizey: sizey,
+		maze: nil,
 	}
 	game.render.Clear()
 	return &game

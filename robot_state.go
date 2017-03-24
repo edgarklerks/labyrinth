@@ -1,4 +1,12 @@
 package main
+import "log"
+
+const LANGUAGE_1 = 0
+const LANGUAGE_2 = 1
+
+type RobotHook interface {
+	r_update(rstate RobotState)
+}
 
 type RobotState struct {
         x int
@@ -6,9 +14,62 @@ type RobotState struct {
         mx int
         my int
         dir int
+	language_type int
+	program1 Program1
+	code_pointer_register int
+	repeat_register int
+	maze *Maze
 }
 
-func (rstate RobotState) collide(dir int, maze *Maze) bool {
+func initRobotStateProgram1(x,y,mx,my int, dir int, program1 Program1, maze *Maze) RobotState {
+	return RobotState {
+		x: x,
+		y: y,
+		mx: mx,
+		my: my,
+		dir: dir,
+		program1: program1,
+		language_type: LANGUAGE_1,
+		code_pointer_register: 0,
+		repeat_register: 0,
+		maze: maze,
+	}
+
+}
+/** Inject a new program into the robot state **/
+func (rstate RobotState) callProgram1(program1 Program1) RobotState {
+	return RobotState {
+		x:rstate.x,
+		y:rstate.y,
+		mx:rstate.mx,
+		my:rstate.my,
+		dir:rstate.dir,
+		language_type: rstate.language_type,
+		program1: program1,
+		code_pointer_register: 0,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
+	}
+}
+/** Merge an old and a new state after a call. This needs to preserve the old registers, but take the new positional parameters **/
+func (rstate RobotState) restoreState(new_rstate RobotState) RobotState {
+	return RobotState {
+		x:new_rstate.x,
+		y:new_rstate.y,
+		mx:new_rstate.mx,
+		my:new_rstate.my,
+		dir:new_rstate.dir,
+		language_type:rstate.language_type,
+		program1:rstate.program1,
+		code_pointer_register: rstate.code_pointer_register,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
+	}
+
+}
+
+func (rstate RobotState) collide(dir int) bool {
+	maze := rstate.maze
 	x := rstate.x
 	y := rstate.y
 	switch {
@@ -26,59 +87,201 @@ func (rstate RobotState) collide(dir int, maze *Maze) bool {
 	return false
 }
 
-func (rstate RobotState) left(maze *Maze) RobotState {
+func (rstate RobotState) left() RobotState {
 	next_state := RobotState {
 		x: nMod(rstate.x - 1, rstate.mx),
 		y: rstate.y,
 		mx: rstate.mx,
 		my: rstate.my,
 		dir: GO_LEFT,
+		language_type: rstate.language_type,
+		program1: rstate.program1,
+		code_pointer_register: rstate.code_pointer_register,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
 	}
 
-	if next_state.collide(GO_LEFT, maze) {
+	if next_state.collide(GO_LEFT) {
 		return rstate
 	}
 	return next_state
 }
 
-func (rstate RobotState) right(maze *Maze) RobotState {
+func (rstate RobotState) right() RobotState {
 	next_state := RobotState {
 		x: nMod(rstate.x + 1,rstate.mx),
 		y: rstate.y,
 		mx: rstate.mx,
 		my: rstate.my,
 		dir: GO_RIGHT,
+		language_type: rstate.language_type,
+		program1: rstate.program1,
+		code_pointer_register: rstate.code_pointer_register,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
+
 	}
-	if next_state.collide(GO_RIGHT,maze) {
+	if next_state.collide(GO_RIGHT) {
 		return rstate
 	}
 	return next_state
 }
 
-func (rstate RobotState) up(maze *Maze) RobotState {
+func (rstate RobotState) up() RobotState {
 	next_state := RobotState {
 		x: rstate.x,
 		y: nMod(rstate.y - 1,rstate.my),
 		mx: rstate.mx,
 		my: rstate.my,
 		dir: rstate.dir,
+		language_type: rstate.language_type,
+		program1: rstate.program1,
+		code_pointer_register: rstate.code_pointer_register,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
+
 	}
-	if next_state.collide(GO_UP,maze) {
+	if next_state.collide(GO_UP) {
 		return rstate
 	}
 	return next_state
 }
 
-func (rstate RobotState) down(maze *Maze) RobotState {
+func (rstate RobotState) down() RobotState {
 	next_state := RobotState {
 		x: rstate.x,
 		y: nMod(rstate.y + 1,rstate.my),
 		mx: rstate.mx,
 		my: rstate.my,
 		dir: rstate.dir,
+		language_type: rstate.language_type,
+		program1: rstate.program1,
+		code_pointer_register: rstate.code_pointer_register,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
+
 	}
-	if next_state.collide(GO_DOWN,maze) {
+	if next_state.collide(GO_DOWN) {
 		return rstate
 	}
 	return next_state
+}
+
+
+/** Switch for choosing the correct language, the hook is used to update the screen **/
+func (rstate RobotState) run(rhook RobotHook) RobotState {
+	switch {
+	case rstate.language_type == LANGUAGE_1:
+		return rstate.run_language1(rhook)
+	}
+
+	return rstate
+
+
+}
+
+func (rstate RobotState) dec_repeat() RobotState {
+	return RobotState {
+		x: rstate.x,
+		y: rstate.y,
+		mx: rstate.mx,
+		my: rstate.my,
+		dir: rstate.dir,
+		language_type: rstate.language_type,
+		program1: rstate.program1,
+		code_pointer_register: rstate.code_pointer_register,
+		repeat_register: rstate.repeat_register - 1,
+		maze: rstate.maze,
+	}
+
+}
+
+func (rstate RobotState) reset() RobotState {
+	rstate.code_pointer_register = 0
+	rstate.repeat_register = 0
+	return rstate
+}
+
+func (rstate RobotState) next_instruction() RobotState {
+	return RobotState {
+		x: rstate.x,
+		y: rstate.y,
+		mx: rstate.mx,
+		my: rstate.my,
+		dir: rstate.dir,
+		language_type: rstate.language_type,
+		program1: rstate.program1,
+		code_pointer_register: rstate.code_pointer_register + 1,
+		repeat_register: rstate.repeat_register,
+		maze: rstate.maze,
+	}
+}
+/** This is basicly a virtual machine. It will halt, when the code_pointer reaches the end of the program **/
+func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
+
+	for rstate.code_pointer_register < len(rstate.program1) {
+
+		/** Lookup the next instruction **/
+		ins := rstate.program1[rstate.code_pointer_register]
+		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
+
+		switch expr := (ins).(type) {
+		case Left:
+			log.Printf("Running instruction: Left")
+			rstate = rstate.left()
+			rstate = rstate.next_instruction()
+		case Right:
+			log.Printf("Running instruction: Right")
+			rstate = rstate.right()
+			rstate = rstate.next_instruction()
+		case Up:
+			log.Printf("Running instruction: Up")
+			rstate = rstate.up()
+			rstate = rstate.next_instruction()
+		case Down:
+			log.Printf("Running instruction: Down")
+			rstate = rstate.down()
+			rstate = rstate.next_instruction()
+		case Group:
+			new_program := expr.prog
+			log.Printf("Entering subprogram from Group")
+			rstate_new := rstate.callProgram1(new_program)
+			rstate_new = rstate_new.run_language1(rhook)
+			rstate = rstate.restoreState(rstate_new)
+			log.Printf("Leaving subprogram from Group")
+			rstate = rstate.next_instruction()
+		case Repeat:
+			new_ins := expr.expr
+			repeats := expr.n
+			log.Printf("Entering repeat instruction, repeating %d times", repeats)
+			/** Set the repeat register **/
+			new_program := toProgram(new_ins)
+			log.Printf("Entering subprogram")
+			/** Entering a subprogram, we need to load the program
+			    This looks stupid, but we can use the same logic for function calls
+			**/
+			/** Let the program know how many repeats it will run **/
+			rstate_new := rstate.callProgram1(new_program)
+
+			for i := 0; i < repeats; i++  {
+				rstate_new.repeat_register = repeats - i
+				log.Printf("In repeat, Registers: code_pointer_r: %d, repeat_r: %d", rstate_new.code_pointer_register, rstate_new.repeat_register)
+
+				rstate_new = rstate_new.run_language1(rhook)
+				rstate_new = rstate_new.reset()
+			}
+
+			/** Restore the registers **/
+			rstate = rstate.restoreState(rstate_new)
+			log.Printf("Leaving subprogram")
+			rstate = rstate.next_instruction()
+
+		}
+	    rhook.r_update(rstate)
+	}
+	log.Printf("Program done")
+
+	return rstate
+
+
 }

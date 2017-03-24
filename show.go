@@ -4,14 +4,14 @@ import "github.com/veandco/go-sdl2/sdl"
 import "github.com/veandco/go-sdl2/sdl_image"
 
 func (game *Game) renderRobot(rstate RobotState) {
-        var flip sdl.RendererFlip 
+        var flip sdl.RendererFlip
         switch {
           case GO_LEFT == rstate.dir:
                 flip = sdl.FLIP_NONE
           case GO_RIGHT == rstate.dir:
                 flip = sdl.FLIP_HORIZONTAL
         }
-        robot_rect := sdl.Rect { 
+        robot_rect := sdl.Rect {
                 X: int32(10 * nMod(rstate.x,rstate.mx)),
                 Y: int32(10 * nMod(rstate.y,rstate.my)),
                 W: 9,
@@ -108,5 +108,16 @@ Perhaps I should just accept it
 		}
 	}
 
+
+}
+
+/** Update logic to feed into robothook **/
+
+func (game *Game) r_update(rstate RobotState) {
+		game.Clear()
+		game.renderMaze(game.maze)
+		game.renderRobot(rstate)
+		game.Update()
+		sdl.Delay(100)
 
 }
