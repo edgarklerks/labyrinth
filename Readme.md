@@ -21,12 +21,13 @@ The number is a seed to the random generator.
 
 # Todo
 
-## Language 1
+## Language 1 Parser
 
 The first language just has the following constructs:
 
 	<program> := [<command>]*
-	<command> := repeat <number> <command> | left | right | up | down
+	<command> := repeat <number> <command> | left | right | up | down | <group>
+	<group> := '(' <program> ')'
 
 ## Make it modular
 
