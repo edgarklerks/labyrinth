@@ -1,5 +1,6 @@
 package main
 import "log"
+import "lang1/ast"
 
 const LANGUAGE_1 = 0
 const LANGUAGE_2 = 1
@@ -15,13 +16,13 @@ type RobotState struct {
         my int
         dir int
 	language_type int
-	program1 Program1
+	program1 ast.Program1
 	code_pointer_register int
 	repeat_register int
 	maze *Maze
 }
 
-func initRobotStateProgram1(x,y,mx,my int, dir int, program1 Program1, maze *Maze) RobotState {
+func initRobotStateProgram1(x,y,mx,my int, dir int, program1 ast.Program1, maze *Maze) RobotState {
 	return RobotState {
 		x: x,
 		y: y,
@@ -37,7 +38,7 @@ func initRobotStateProgram1(x,y,mx,my int, dir int, program1 Program1, maze *Maz
 
 }
 /** Inject a new program into the robot state **/
-func (rstate RobotState) callProgram1(program1 Program1) RobotState {
+func (rstate RobotState) callProgram1(program1 ast.Program1) RobotState {
 	return RobotState {
 		x:rstate.x,
 		y:rstate.y,
@@ -226,36 +227,36 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
 
 		switch expr := (ins).(type) {
-		case Left:
+		case ast.Left:
 			log.Printf("Running instruction: Left")
 			rstate = rstate.left()
 			rstate = rstate.next_instruction()
-		case Right:
+		case ast.Right:
 			log.Printf("Running instruction: Right")
 			rstate = rstate.right()
 			rstate = rstate.next_instruction()
-		case Up:
+		case ast.Up:
 			log.Printf("Running instruction: Up")
 			rstate = rstate.up()
 			rstate = rstate.next_instruction()
-		case Down:
+		case ast.Down:
 			log.Printf("Running instruction: Down")
 			rstate = rstate.down()
 			rstate = rstate.next_instruction()
-		case Group:
-			new_program := expr.prog
+		case ast.Group:
+			new_program := expr.Prog
 			log.Printf("Entering subprogram from Group")
 			rstate_new := rstate.callProgram1(new_program)
 			rstate_new = rstate_new.run_language1(rhook)
 			rstate = rstate.restoreState(rstate_new)
 			log.Printf("Leaving subprogram from Group")
 			rstate = rstate.next_instruction()
-		case Repeat:
-			new_ins := expr.expr
-			repeats := expr.n
+		case ast.Repeat:
+			new_ins := expr.Expr
+			repeats := expr.N
 			log.Printf("Entering repeat instruction, repeating %d times", repeats)
 			/** Set the repeat register **/
-			new_program := toProgram(new_ins)
+			new_program := ast.ToProgram(new_ins)
 			log.Printf("Entering subprogram")
 			/** Entering a subprogram, we need to load the program
 			    This looks stupid, but we can use the same logic for function calls

@@ -1,0 +1,17 @@
+/** Lexer for the first language **/
+natural : '0' - '9';
+
+left_brace : '{';
+right_brace : '}';
+!whitespace : '\t' | '\r' | '\n' | ' ';
+<< import "lang1/ast" >>
+
+Lang1 : Prog;
+
+Prog : Command Prog << ast.NewProgram($0,$1) >> | empty << ast.EmptyProgram() >>;
+Command: "left" Prog << ast.NewLeft() >>
+       | "right" Prog << ast.NewRight() >>
+       | "up" << ast.NewUp() >>
+       | "down" << ast.NewDown() >>
+       | "repeat" natural Command << ast.NewRepeat($1,$2) >>
+       | left_brace Prog right_brace << ast.NewGroup($1) >>;
