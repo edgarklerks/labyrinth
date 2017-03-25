@@ -10,8 +10,10 @@ It is written in SDL and go and the maze itself already works including the robo
 
 # Building
 
+First install gocc, the run:
+
 	source env.sh
-	go build
+  make 
 
 # Playing
 
