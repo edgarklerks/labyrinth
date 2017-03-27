@@ -280,6 +280,7 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 		}
 	    rhook.r_update(rstate)
 	}
+  rstate.reset()
 	log.Printf("Program done")
 
 	return rstate

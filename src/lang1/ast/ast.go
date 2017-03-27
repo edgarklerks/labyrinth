@@ -1,9 +1,9 @@
 package ast
 import "strconv"
 import "strings"
-import "log"
 import "fmt"
 import "errors"
+import "lang1/token"
 /**
 Structure of the first language:
 program := <command>*
@@ -26,36 +26,29 @@ I would say, let it do a step every 100 milliseconds or so
 
 type Program1 []Language1
 
-func EmptyProgram() (Program1,error) {
 
-	log.Printf("EmptyProgram empty program created")
+func EmptyProgram() Program1 {
+
 	var emp []Language1
 	emp = make([]Language1,0)
-	return emp,nil
+	return emp
 }
 
 
 func NewProgram(ys interface{}, xs interface{}) (Program1,error) {
-	log.Printf("NewProgram created")
 	y,ok := ys.(Language1)
 	if !ok{
 		return nil, errors.New("Expected expression")
 	}
-	log.Printf("NewProgram found %s", y.ToString())
 	qs,ok := xs.(Program1)
 	if ok {
 	    qs = append(qs,y)
-		log.Printf("NewProgram fine")
-		PrintTree(qs)
-		log.Printf("NewProgram end")
 	    return qs,nil
 	} else {
 		if qs == nil {
 			var ps []Language1
 			ps = make([]Language1, 1)
 			ps[0] = y
-			log.Printf("NewProgram Empty program returned...")
-			PrintTree(ps)
 			return ps,nil
 		}
 	}
@@ -77,8 +70,7 @@ func (e Repeat) ToString() string {
 }
 func (e Repeat) IsLang1() {}
 func NewRepeat(num interface{}, exp interface{}) (Repeat,error) {
-	log.Printf("New repeat created")
-        n, err := strconv.Atoi(num.(string))
+        n, err := strconv.Atoi(string(num.(*token.Token).Lit))
         if err != nil {
                 return Repeat{}, err
         }
@@ -89,10 +81,86 @@ func NewRepeat(num interface{}, exp interface{}) (Repeat,error) {
 
 }
 
+type Proc struct {
+	Name string
+	Expr Language1
+
+}
+func (e Proc) IsLang1(){}
+func (e Proc) ToString() string {
+	return fmt.Sprintf("proc %s %s", e.Name, e.ToString())
+}
+
+type Test struct {
+	Type string
+	Dir string
+}
+func (e Test) IsLang1(){}
+func (e Test) ToString() string {
+	return fmt.Sprintf("%s %s",e.Type,e.Dir)
+}
+
+func NewTest(tpe interface{}, dir interface{}) (Test, error) {
+	tpe_r := string(tpe.(*token.Token).Lit)
+	dir_r := string(tpe.(*token.Token).Lit)
+	return Test{Type:tpe_r,Dir:dir_r,},nil
+}
+
+
+type If struct {
+	Test Test
+	Ok Language1
+	Nok Language1
+}
+
+func NewIf(test interface{}, ok interface{}, nok interface{}) (If, error) {
+	if nok == nil {
+		return If{
+			Test: test.(Test),
+			Ok: ok.(Language1),
+			Nok: Group{Prog:make([]Language1,0),},
+		},nil
+	} else {
+		return If{
+			Test: test.(Test),
+			Ok: ok.(Language1),
+			Nok: nok.(Language1),
+	},nil
+	}
+}
+
+func (e If) IsLang1(){}
+func (e If) IsString() string {
+	return fmt.Sprintf("if %s { %s } else { %s }", e.Test.ToString(),e.Ok.ToString(), e.Nok.ToString())
+}
+
+type Call struct {
+	Name string
+}
+func (e Call) IsLang1(){}
+func (e Call) ToString() string {
+	return fmt.Sprintf("call %s", e.Name)
+}
+
+
+func NewCall(label interface{}) (Call, error){
+	r_label := string(label.(*token.Token).Lit)
+	return Call{
+		Name: r_label,
+	},nil
+}
+
+func NewProc(label interface{}, expr interface{}) (Proc,error) {
+	r_label := string(label.(*token.Token).Lit)
+	return Proc{
+		Name: r_label,
+		Expr: expr.(Language1),
+	},nil
+}
+
 type Left struct {}
 
 func NewLeft() (Left, error) {
-	log.Printf("New left created")
 	return Left{}, nil
 }
 func (e Left) ToString() string{
@@ -101,7 +169,6 @@ func (e Left) ToString() string{
 
 func (e Left) IsLang1() {}
 func NewRight() (Right, error) {
-	log.Printf("New right created")
 	return Right{},nil
 }
 type Right struct {}
@@ -110,14 +177,12 @@ func (e Right) IsLang1() {}
 type Up struct {}
 func (e Up) ToString() string { return "up" }
 func NewUp() (Up,error) {
-	log.Printf("New up created")
 	return Up{},nil
 }
 func (e Up) IsLang1() {}
 type Down struct {}
 func (e Down) ToString() string { return "down" }
 func NewDown() (Down,error){
-	log.Printf("New down created")
 	return Down{},nil
 }
 func (e Down) IsLang1() {}
@@ -132,7 +197,6 @@ func (e Group) ToString() string {
 	return fmt.Sprintf("{ %s }", strings.Join(out, "\n"))
 }
 func NewGroup(exp interface{}) (Group, error) {
-	log.Printf("New group created")
 	prog,ok := exp.(Program1)
 	if ok {
 	    return Group{Prog:prog},nil
@@ -152,7 +216,6 @@ func (e Group) IsLang1() {}
 
 
 func PrintTree(program1 Program1) {
-	log.Printf("Outputting program from PrintTree")
 	for _,e := range program1 {
 		switch expr := e.(type) {
 		case Left:
@@ -176,7 +239,7 @@ func PrintTree(program1 Program1) {
 
 func TestProgram() Program1 {
 	var program []Language1
-	program = make([]Language1,10)
+	program = make([]Language1,12)
 	program[0] = Repeat{N: 5, Expr: Left{},}
 	program[1] = Up{}
 	program[2] = Right{}
@@ -185,8 +248,10 @@ func TestProgram() Program1 {
 	program[5] = Right{}
 	program[6] = Left{}
 	program[7] = Down{}
-	program[8] = Down{}
-	program[9] = Repeat{N: 7, Expr: Repeat{N:3 , Expr:Group{
+  program[8] = Repeat{N: 4, Expr: Group{ Prog: program[3:6], }, }
+  program[9] = Repeat{N: 2, Expr: Repeat{N:3 , Expr:Group{Prog: program[1:4],},},}
+  program[10] = Repeat{N: 4, Expr: Group{ Prog: program[3:6], }, }
+	program[11] = Repeat{N: 2, Expr: Repeat{N:3 , Expr:Group{
 		Prog: program[1:4],
 	},}}
 	return program

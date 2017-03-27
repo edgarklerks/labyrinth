@@ -1,17 +1,16 @@
 package main
 import "lang1/ast"
-// import "errors"
 import "github.com/veandco/go-sdl2/sdl"
 import "fmt"
-// import "log"
+import "log"
 import "os"
 import "strconv"
 //import "github.com/veandco/go-sdl2/sdl_mixer"
 import "github.com/veandco/go-sdl2/sdl_image"
 //import "github.com/veandco/go-sdl2/sdl_ttf"
-// import "lang1/lexer"
-// import "lang1/parser"
-// import "io/ioutil"
+import "lang1/lexer"
+import "lang1/parser"
+import "io/ioutil"
 
 
 func main(){
@@ -19,8 +18,7 @@ func main(){
 	game := InitGame(800,600)
 	var input sdl.Event
 
-	/**
-	prg_txt,err := ioutil.ReadFile("test.prog")
+prg_txt,err := ioutil.ReadFile("test.prog")
 	if err != nil {
 		panic(err)
 	}
@@ -32,12 +30,8 @@ func main(){
 		panic(err)
 	} else {
 		log.Printf("PRINTING TREE")
-		for _,pr :=  range program.([]ast.Program1) {
-			ast.PrintTree(pr)
-		}
+    ast.PrintTree(program.(ast.Program1))
 	}
-	panic(errors.New("STOP"))
-**/
 
 	maze_number_arg := os.Args[1]
 	maze_number, err := strconv.ParseInt(maze_number_arg,10,64)
@@ -46,10 +40,12 @@ func main(){
 	}
 
 
-	maze := carveMaze(16,12, maze_number)
+  sizex := 16 
+  sizey := 12
+	maze := carveMaze(sizex,sizey, maze_number)
 	game.maze = maze
 
-	rstate := initRobotStateProgram1(0,0,16,12,GO_RIGHT, ast.TestProgram(),maze)
+	rstate := initRobotStateProgram1(0,0,sizex,sizey,GO_RIGHT, program.(ast.Program1),maze)
 
 
 	if(!checkCarving(maze)){
