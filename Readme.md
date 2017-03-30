@@ -10,7 +10,7 @@ It is written in SDL and go and the maze itself already works including the robo
 
 # Building
 
-First install gocc, the run:
+First install gocc, then run:
 
 	source env.sh
   make 
@@ -23,13 +23,20 @@ The number is a seed to the random generator.
 
 # Todo
 
-## Language 1 Parser
+## Add a user interface
 
-The first language just has the following constructs:
+A small user interface showing which instruction is being executed and the register content. Also let users load various programs 
 
-	<program> := [<command>]*
-	<command> := repeat <number> <command> | left | right | up | down | <group>
-	<group> := '(' <program> ')'
+## Add a second robot
+
+So users can pit their programs at each other. 
+
+### Add a way to shoot on another robot
+
+## Create an end goal
+
+Add an end goal. 
+
 
 ## Make it modular
 
