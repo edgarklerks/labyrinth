@@ -40,7 +40,7 @@ prg_txt,err := ioutil.ReadFile("test.prog")
 	}
 
 
-  sizex := 16 
+  sizex := 16
   sizey := 12
 	maze := carveMaze(sizex,sizey, maze_number)
 	game.maze = maze

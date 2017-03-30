@@ -1,5 +1,6 @@
 /** Lexer for the first language **/
-natural : '0' - '9';
+_digit : '0' - '9';
+natural : '0' - '9' {_digit};
 id : 'a' -'z';
 left_brace : '{';
 right_brace : '}';
@@ -17,8 +18,11 @@ Command: "left" << ast.NewLeft() >>
        | left_brace Prog right_brace << ast.NewGroup($1) >>
        | "proc" id Command << ast.NewProc($1,$2) >>
        | "call" id <<ast.NewCall($1) >>
-       | "if" Test left_brace Command right_brace <<ast.NewIf($1,$3,nil)>>
-       | "if" Test left_brace Command right_brace "else" left_brace Command right_brace <<ast.NewIf($1,$3,$7)>>;
+       | "if" Test Command "else" Command "fi" <<ast.NewIf($1,$2,$4)>>
+       | "nop" id <<ast.NewNop($1)>>;
+
 Test: "wall" Dir << ast.NewTest($0,$1) >>
-    | "robot" Dir << ast.NewTest($0,$1) >>;
+    | "open" Dir << ast.NewTest($0, $1) >>
+    | "robot" Dir << ast.NewTest($0,$1) >>
+    | "rand" natural << ast.NewTest($0, $1) >>;
 Dir: "left" | "right" | "up" | "down";

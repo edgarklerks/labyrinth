@@ -102,7 +102,7 @@ func (e Test) ToString() string {
 
 func NewTest(tpe interface{}, dir interface{}) (Test, error) {
 	tpe_r := string(tpe.(*token.Token).Lit)
-	dir_r := string(tpe.(*token.Token).Lit)
+	dir_r := string(dir.(*token.Token).Lit)
 	return Test{Type:tpe_r,Dir:dir_r,},nil
 }
 
@@ -111,6 +111,10 @@ type If struct {
 	Test Test
 	Ok Language1
 	Nok Language1
+}
+
+func (e If) ToString() string {
+	return "todo"
 }
 
 func NewIf(test interface{}, ok interface{}, nok interface{}) (If, error) {
@@ -148,6 +152,20 @@ func NewCall(label interface{}) (Call, error){
 	return Call{
 		Name: r_label,
 	},nil
+}
+type Nop struct{Label string}
+
+func NewNop(label interface{}) (Nop, error) {
+	r_label := string(label.(*token.Token).Lit)
+	return Nop{
+		Label:r_label,
+
+	},nil
+}
+
+func (e Nop) IsLang1() {}
+func (e Nop) ToString() string {
+	return fmt.Sprintf("nop %s", e.Label)
 }
 
 func NewProc(label interface{}, expr interface{}) (Proc,error) {

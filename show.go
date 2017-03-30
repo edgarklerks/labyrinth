@@ -118,6 +118,6 @@ func (game *Game) r_update(rstate RobotState) {
 		game.renderMaze(game.maze)
 		game.renderRobot(rstate)
 		game.Update()
-		sdl.Delay(200)
+		sdl.Delay(50)
 
 }
