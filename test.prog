@@ -1,0 +1,20 @@
+repeat 100 {
+if open left {
+   left
+} else {
+  if open down {
+     down
+  } else {
+    if open right {
+       right
+    } else {
+      if open up {
+      	 up
+    } else {
+     nop a
+    } fi
+    } fi
+
+  } fi
+} fi
+}
