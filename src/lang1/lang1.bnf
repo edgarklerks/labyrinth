@@ -1,7 +1,8 @@
 /** Lexer for the first language **/
 _digit : '0' - '9';
 natural : '0' - '9' {_digit};
-id : 'a' -'z';
+_id : 'a' - 'z';
+id : 'a' -'z' {_id};
 left_brace : '{';
 right_brace : '}';
 !whitespace : '\t' | '\r' | '\n' | ' ';

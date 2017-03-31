@@ -3,6 +3,7 @@ import "log"
 import "lang1/ast"
 import "math/rand"
 import "strconv"
+import "errors"
 
 const LANGUAGE_1 = 0
 const LANGUAGE_2 = 1
@@ -21,6 +22,7 @@ type RobotState struct {
 	program1 ast.Program1
 	code_pointer_register int
 	repeat_register int
+  symtab map[string]*ast.Program1
 	maze *Maze
 }
 
@@ -36,6 +38,7 @@ func initRobotStateProgram1(x,y,mx,my int, dir int, program1 ast.Program1, maze 
 		code_pointer_register: 0,
 		repeat_register: 0,
 		maze: maze,
+    symtab: make(map[string]*ast.Program1, 0),
 	}
 
 }
@@ -52,6 +55,7 @@ func (rstate RobotState) callProgram1(program1 ast.Program1) RobotState {
 		code_pointer_register: 0,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 	}
 }
 /** Merge an old and a new state after a call. This needs to preserve the old registers, but take the new positional parameters **/
@@ -67,6 +71,7 @@ func (rstate RobotState) restoreState(new_rstate RobotState) RobotState {
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 	}
 
 }
@@ -102,6 +107,7 @@ func (rstate RobotState) left() RobotState {
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 	}
 
 	if next_state.collide(GO_LEFT) {
@@ -122,6 +128,7 @@ func (rstate RobotState) right() RobotState {
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 
 	}
 	if next_state.collide(GO_RIGHT) {
@@ -142,6 +149,7 @@ func (rstate RobotState) up() RobotState {
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 
 	}
 	if next_state.collide(GO_UP) {
@@ -162,6 +170,7 @@ func (rstate RobotState) down() RobotState {
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 
 	}
 	if next_state.collide(GO_DOWN) {
@@ -195,6 +204,7 @@ func (rstate RobotState) dec_repeat() RobotState {
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register - 1,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 	}
 
 }
@@ -217,22 +227,20 @@ func (rstate RobotState) next_instruction() RobotState {
 		code_pointer_register: rstate.code_pointer_register + 1,
 		repeat_register: rstate.repeat_register,
 		maze: rstate.maze,
+    symtab: rstate.symtab,
 	}
 }
 /** This is basicly a virtual machine. It will halt, when the code_pointer reaches the end of the program **/
 func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 	/** Build symbol table **/
-	var symtab map[string]*ast.Program1
-	symtab = make(map[string]*ast.Program1, 0)
 
-	for index,ins := range rstate.program1 {
+	for _,ins := range rstate.program1 {
 		switch expr := (ins).(type) {
 		case ast.Proc:
 			name := expr.Name
 			prog := ast.ToProgram(expr.Expr)
-			prog_clone := prog
-			symtab[name] = &prog_clone
-			rstate.program1[index] = ast.Nop{Label: "Replaced by symbuilder",}
+      log.Printf("Converted %s to program %s", expr.Expr.ToString(), name)
+			rstate.symtab[name] = &prog
 		}
 
 	}
@@ -245,13 +253,21 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
 
 		switch expr := (ins).(type) {
+    case ast.Proc:
+            rstate = rstate.next_instruction()
 		case ast.Call:
 			name := expr.Name
-			prog := symtab[name]
+			prog := rstate.symtab[name]
+      if prog == nil {
+              log.Printf("No such sub program %s", name)
+              panic(errors.New("No such sub program"))
+      }
 			log.Printf("Entering subprogram from Call")
 			rstate_new := rstate.callProgram1(*prog)
 			rstate_new = rstate_new.run_language1(rhook)
+			log.Printf("Exiting subprogram from Call")
 			rstate = rstate.restoreState(rstate_new)
+		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
 			rstate = rstate.next_instruction()
 		case ast.If:
 			/** TODO: implement tests **/

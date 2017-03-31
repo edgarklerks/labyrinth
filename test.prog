@@ -1,20 +1,57 @@
-repeat 100 {
-if open left {
-   left
-} else {
-  if open down {
-     down
-  } else {
-    if open right {
-       right
-    } else {
-      if open up {
-      	 up
-    } else {
-     nop a
-    } fi
-    } fi
+proc random {
+if rand 8 {
+               up 
+        } else { nop a } fi 
+if rand 8 {
+               down 
+        } else { nop a } fi 
+if rand 8 {
+               left 
+        } else { nop a } fi 
+if rand 8 {
+               right 
+        } else { nop a } fi 
 
-  } fi
-} fi
 }
+
+proc goleft {
+        repeat 8 left 
+        call random
+
+}
+proc goright {
+        repeat 8 right 
+        call random
+
+}
+
+proc godown {
+        repeat 8 down 
+        call random
+
+}
+proc goup {
+        repeat 8 up 
+        call random
+
+}
+repeat 100 {
+
+
+        if open left {
+                call goleft
+        } else { 
+                if open right {
+                      call  goright
+                } else { nop a} fi 
+        } fi 
+
+        if open down {
+              call  godown
+        } else {
+                if open up {
+                 call       goup
+                } else {nop a} fi
+        }fi
+} 
+
