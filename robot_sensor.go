@@ -67,6 +67,25 @@ func (rstate RobotState) random_choice(times string) bool {
 	return c == 0
 }
 
+func (rstate RobotState) test_dir(dir string) bool {
+	if rstate.prev_dir == GO_UNKNOWN {
+	    return false
+	}
+
+	switch {
+	case dir == "left" && rstate.prev_dir == GO_LEFT:
+		return true
+
+	case dir == "right" && rstate.prev_dir == GO_RIGHT:
+		return true
+	case dir == "up" && rstate.prev_dir == GO_UP:
+		return true
+	case dir == "down" && rstate.prev_dir == GO_DOWN:
+		return true
+	}
+	return false
+}
+
 func (rstate RobotState) test_robot(dir string) bool {
 	log.Printf("test_robot has not been implemented, reverting to first branch")
 	return true
@@ -90,10 +109,23 @@ func (rstate RobotState) evaluatePredicate(predicate ast.Predicate) bool {
 		case test_type == "rand":
 			test_result = rstate.random_choice(test_dir)
 			return test_result
+		case test_type == "prev":
+			test_result = rstate.test_dir(test_dir)
+			return test_result
 
 		}
-
-
+	case ast.TestAnd:
+		test1 := expr.Test1
+		test2 := expr.Test2
+		return rstate.evaluatePredicate(test1) && rstate.evaluatePredicate(test2)
+	case ast.TestOr:
+		test1 := expr.Test1
+		test2 := expr.Test2
+		return rstate.evaluatePredicate(test1) && rstate.evaluatePredicate(test2)
+	case ast.TestNot:
+		test1 := expr.Test1
+		return !rstate.evaluatePredicate(test1)
 	}
+
 	return false
 }

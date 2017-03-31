@@ -21,6 +21,7 @@ const GO_LEFT =  0
 const GO_RIGHT = 1
 const GO_UP = 2
 const GO_DOWN = 3
+const GO_UNKNOWN = 4 
 
 
 func (pos Position) doStep(direction int) Position{

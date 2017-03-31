@@ -20,7 +20,8 @@ type RobotState struct {
 	program1 ast.Program1
 	code_pointer_register int
 	repeat_register int
-  symtab map[string]*ast.Program1
+	prev_dir int
+	symtab map[string]*ast.Program1
 	maze *Maze
 }
 
