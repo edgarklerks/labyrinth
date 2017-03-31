@@ -36,6 +36,7 @@ func initRobotStateProgram1(x,y,mx,my int, dir int, program1 ast.Program1, maze 
 		language_type: LANGUAGE_1,
 		code_pointer_register: 0,
 		repeat_register: 0,
+		prev_dir: GO_UNKNOWN,
 		maze: maze,
     symtab: make(map[string]*ast.Program1, 0),
 	}
@@ -53,6 +54,7 @@ func (rstate RobotState) callProgram1(program1 ast.Program1) RobotState {
 		program1: program1,
 		code_pointer_register: 0,
 		repeat_register: rstate.repeat_register,
+		prev_dir: rstate.prev_dir,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 	}
@@ -69,6 +71,7 @@ func (rstate RobotState) restoreState(new_rstate RobotState) RobotState {
 		program1:rstate.program1,
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
+		prev_dir: new_rstate.prev_dir,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 	}
@@ -105,6 +108,7 @@ func (rstate RobotState) left() RobotState {
 		program1: rstate.program1,
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
+		prev_dir: GO_LEFT,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 	}
@@ -126,6 +130,7 @@ func (rstate RobotState) right() RobotState {
 		program1: rstate.program1,
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
+		prev_dir: GO_RIGHT,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 
@@ -147,6 +152,7 @@ func (rstate RobotState) up() RobotState {
 		program1: rstate.program1,
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
+		prev_dir: GO_UP,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 
@@ -168,6 +174,7 @@ func (rstate RobotState) down() RobotState {
 		program1: rstate.program1,
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register,
+		prev_dir: GO_DOWN,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 
@@ -202,6 +209,7 @@ func (rstate RobotState) dec_repeat() RobotState {
 		program1: rstate.program1,
 		code_pointer_register: rstate.code_pointer_register,
 		repeat_register: rstate.repeat_register - 1,
+		prev_dir: rstate.prev_dir,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 	}
@@ -225,6 +233,7 @@ func (rstate RobotState) next_instruction() RobotState {
 		program1: rstate.program1,
 		code_pointer_register: rstate.code_pointer_register + 1,
 		repeat_register: rstate.repeat_register,
+		prev_dir: rstate.prev_dir,
 		maze: rstate.maze,
     symtab: rstate.symtab,
 	}
