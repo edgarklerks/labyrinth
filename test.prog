@@ -1,16 +1,16 @@
 proc random {
 if rand 8 {
                up 
-        } else { nop a } fi 
+        } else { nop a } 
 if rand 8 {
                down 
-        } else { nop a } fi 
+        } else { nop a } 
 if rand 8 {
                left 
-        } else { nop a } fi 
+        } else { nop a } 
 if rand 8 {
                right 
-        } else { nop a } fi 
+        } else { nop a } 
 
 }
 
@@ -43,15 +43,15 @@ repeat 100 {
         } else { 
                 if open right {
                       call  goright
-                } else { nop a} fi 
-        } fi 
+                } else { nop a} 
+        } 
 
         if open down {
               call  godown
         } else {
                 if open up {
                  call       goup
-                } else {nop a} fi
-        }fi
+                } else {nop a}
+        }
 } 
 

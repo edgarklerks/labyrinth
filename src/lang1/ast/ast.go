@@ -91,11 +91,16 @@ func (e Proc) ToString() string {
 	return fmt.Sprintf("proc %s %s", e.Name, e.ToString())
 }
 
+type Predicate interface {
+        IsPred()
+}
+
 type Test struct {
 	Type string
 	Dir string
 }
 func (e Test) IsLang1(){}
+func (e Test) IsPred(){}
 func (e Test) ToString() string {
 	return fmt.Sprintf("%s %s",e.Type,e.Dir)
 }
@@ -107,8 +112,72 @@ func NewTest(tpe interface{}, dir interface{}) (Test, error) {
 }
 
 
+type TestAnd struct {
+        Test1 Predicate
+        Test2 Predicate
+}
+
+func (e TestAnd) IsLang1(){}
+func (e TestAnd) IsPred(){}
+func (e TestAnd) ToString() string { return "todo"}
+
+type TestOr struct {
+        Test1 Predicate
+        Test2 Predicate
+}
+
+func (e TestOr) IsLang1(){}
+func (e TestOr) IsPred(){}
+func (e TestOr) ToString() string { return "todo"}
+
+type TestNot struct {
+        Test1 Predicate
+}
+
+func (e TestNot) IsLang1(){}
+func (e TestNot) IsPred(){}
+func (e TestNot) ToString() string { return "todo"}
+
+
+func getPredicate(test interface{}) Predicate {
+        switch expr := test.(type) {
+        case Test:
+                return expr
+        case TestAnd:
+                return expr
+        }
+        return Test{}
+}
+
+
+func NewTestNot(test1 interface{}) (TestNot, error){
+         test_1 := getPredicate(test1)
+         return TestNot{
+                 Test1: test_1,
+         },nil
+}
+
+func NewTestOr(test1 interface{}, test2 interface{}) (TestOr, error) {
+         test_1 := getPredicate(test1)
+        test_2 := getPredicate(test2)
+        return TestOr{
+                Test1: test_1,
+                Test2: test_2,
+        }, nil
+}
+
+func NewTestAnd(test1 interface{}, test2 interface{}) (TestAnd, error) {
+        test_1 := getPredicate(test1)
+        test_2 := getPredicate(test2)
+        return TestAnd{
+                Test1: test_1,
+                Test2: test_2,
+        }, nil
+}
+
+
 type If struct {
-	Test Test
+	Test Predicate
 	Ok Language1
 	Nok Language1
 }
@@ -135,7 +204,7 @@ func NewIf(test interface{}, ok interface{}, nok interface{}) (If, error) {
 
 func (e If) IsLang1(){}
 func (e If) IsString() string {
-	return fmt.Sprintf("if %s { %s } else { %s }", e.Test.ToString(),e.Ok.ToString(), e.Nok.ToString())
+	return "todo" // fmt.Sprintf("if %s { %s } else { %s }", e.Test.ToString(),e.Ok.ToString(), e.Nok.ToString())
 }
 
 type Call struct {

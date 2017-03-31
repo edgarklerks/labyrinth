@@ -23,6 +23,8 @@ The number is a seed to the random generator.
 
 # Todo
 
+## Add some more sensors to the robot 
+
 ## Add a user interface
 
 A small user interface showing which instruction is being executed and the register content. Also let users load various programs 

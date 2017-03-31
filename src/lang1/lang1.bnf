@@ -19,11 +19,16 @@ Command: "left" << ast.NewLeft() >>
        | left_brace Prog right_brace << ast.NewGroup($1) >>
        | "proc" id Command << ast.NewProc($1,$2) >>
        | "call" id <<ast.NewCall($1) >>
-       | "if" Test Command "else" Command "fi" <<ast.NewIf($1,$2,$4)>>
+       | "if" Test Command "else" Command <<ast.NewIf($1,$2,$4)>>
        | "nop" id <<ast.NewNop($1)>>;
 
 Test: "wall" Dir << ast.NewTest($0,$1) >>
     | "open" Dir << ast.NewTest($0, $1) >>
     | "robot" Dir << ast.NewTest($0,$1) >>
-    | "rand" natural << ast.NewTest($0, $1) >>;
+    | "rand" natural << ast.NewTest($0, $1) >>
+    | "prev" Dir << ast.NewTest($0, $1) >> 
+// This is not ok, I need to chain them in a way to fixup the precedence of the operators 
+    | "and" Test Test << ast.NewTestAnd($1, $2) >> 
+    | "or" Test Test << ast.NewTestOr($1, $2) >> 
+    | "not" Test << ast.NewTestNot($1) >>; 
 Dir: "left" | "right" | "up" | "down";

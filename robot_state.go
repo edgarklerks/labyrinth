@@ -1,8 +1,6 @@
 package main
 import "log"
 import "lang1/ast"
-import "math/rand"
-import "strconv"
 import "errors"
 
 const LANGUAGE_1 = 0
@@ -270,23 +268,7 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
 			rstate = rstate.next_instruction()
 		case ast.If:
-			/** TODO: implement tests **/
-			// dir: left, right, up, down
-			test_result := false
-			test_type := expr.Test.Type
-			test_dir := expr.Test.Dir
-			log.Printf("executing: %s %s", test_type, test_dir)
-			switch {
-			case test_type == "wall":
-				test_result = rstate.test_wall(test_dir)
-			case test_type == "open":
-				test_result = rstate.test_open(test_dir)
-			case test_type == "robot":
-				test_result = rstate.test_robot(test_dir)
-			case test_type == "rand":
-				test_result = rstate.random_choice(test_dir)
-
-			}
+			test_result := rstate.evaluatePredicate(expr.Test)
 
 			var new_prog ast.Program1
 			if test_result == true {
@@ -358,70 +340,4 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 	log.Printf("Program done")
 
 	return rstate
-}
-/** Various tests for the robot to detect a wall and other features of the maze **/
-func (rstate RobotState) test_wall(dir string) bool {
-	maze := rstate.maze
-	posx := nMod(rstate.x, rstate.mx)
-	posy := nMod(rstate.y,rstate.my)
-
-	wall := maze.grid[posx][posy]
-
-	switch {
-	case dir == "left" && (wall & LeftWall) == LeftWall:
-		log.Printf("Detected left wall")
-		return true
-	case dir == "right" && (wall & RightWall) == RightWall:
-		log.Printf("Detected right wall")
-		return true
-	case dir == "up" && (wall & UpWall) == UpWall:
-		log.Printf("Detected up wall")
-		return true
-        case dir == "down" && (wall & DownWall) == DownWall:
-		log.Printf("Detected down wall")
-		return true
-	}
-	return false
-}
-
-func (rstate RobotState) test_open(dir string) bool {
-	maze := rstate.maze
-	posx := nMod(rstate.x, rstate.mx)
-	posy := nMod(rstate.y,rstate.my)
-
-	wall := maze.grid[posx][posy]
-	log.Printf("Received dir: %s", dir)
-
-	switch {
-	case dir == "left" && (wall & LeftWall) != LeftWall:
-		log.Printf("Detected left passage")
-		return true
-	case dir == "right" && (wall & RightWall) != RightWall:
-		log.Printf("Detected right passage")
-		return true
-	case dir == "up" && (wall & UpWall) !=  UpWall:
-		log.Printf("Detected up passage")
-		return true
-        case dir == "down" && (wall & DownWall) != DownWall:
-		log.Printf("Detected down passage")
-		return true
-	}
-	return false
-
-}
-
-func (rstate RobotState) random_choice(times string) bool {
-  q,err := strconv.ParseInt(times, 10, 32)
-  if err != nil{
-          panic(err)
-  }
-	c := rand.Intn(int(q))
-
-  log.Printf("random_choice 1 / %d: %d == 0?",q, c)
-	return c == 0
-}
-
-func (rstate RobotState) test_robot(dir string) bool {
-	log.Printf("test_robot has not been implemented, reverting to first branch")
-	return true
 }
