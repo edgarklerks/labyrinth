@@ -68,19 +68,25 @@ func (rstate RobotState) random_choice(times string) bool {
 }
 
 func (rstate RobotState) test_dir(dir string) bool {
+log.Printf("Direction in test_dir: %s", dir)
 	if rstate.prev_dir == GO_UNKNOWN {
-	    return false
+		log.Printf("Prev_dir == unknown")
+	    return false 
 	}
 
 	switch {
 	case dir == "left" && rstate.prev_dir == GO_LEFT:
+		log.Printf("Prev_dir == left")
 		return true
 
 	case dir == "right" && rstate.prev_dir == GO_RIGHT:
+		log.Printf("Prev_dir == right")
 		return true
 	case dir == "up" && rstate.prev_dir == GO_UP:
+		log.Printf("Prev_dir == up")
 		return true
 	case dir == "down" && rstate.prev_dir == GO_DOWN:
+		log.Printf("Prev_dir == down")
 		return true
 	}
 	return false
@@ -93,39 +99,41 @@ func (rstate RobotState) test_robot(dir string) bool {
 
 func (rstate RobotState) evaluatePredicate(predicate ast.Predicate) bool {
 
-	switch expr := predicate.(type) {
-	case ast.Test:
-		test_result := false
-		test_type := expr.Type
-		test_dir := expr.Dir
-		log.Printf("executing: %s %s", test_type, test_dir)
-		switch {
-		case test_type == "wall":
-			test_result = rstate.test_wall(test_dir)
-		case test_type == "open":
-			test_result = rstate.test_open(test_dir)
-		case test_type == "robot":
-			test_result = rstate.test_robot(test_dir)
-		case test_type == "rand":
-			test_result = rstate.random_choice(test_dir)
-			return test_result
-		case test_type == "prev":
-			test_result = rstate.test_dir(test_dir)
-			return test_result
+        switch expr := predicate.(type) {
+        case ast.Test:
+                test_result := false
+                test_type := expr.Type
+                test_dir := expr.Dir
+                log.Printf("executing: %s %s", test_type, test_dir)
+                switch {
+                case test_type == "wall":
+                        test_result = rstate.test_wall(test_dir)
+                case test_type == "open":
+                        test_result = rstate.test_open(test_dir)
+                case test_type == "robot":
+                        test_result = rstate.test_robot(test_dir)
+                case test_type == "rand":
+                        test_result = rstate.random_choice(test_dir)
+                case test_type == "prev":
+                        test_result = rstate.test_dir(test_dir)
 
-		}
-	case ast.TestAnd:
-		test1 := expr.Test1
-		test2 := expr.Test2
-		return rstate.evaluatePredicate(test1) && rstate.evaluatePredicate(test2)
-	case ast.TestOr:
-		test1 := expr.Test1
-		test2 := expr.Test2
-		return rstate.evaluatePredicate(test1) && rstate.evaluatePredicate(test2)
-	case ast.TestNot:
-		test1 := expr.Test1
-		return !rstate.evaluatePredicate(test1)
-	}
+                }
+                return test_result
+        case ast.TestGroup:
+                test1 := expr.Group 
+                return rstate.evaluatePredicate(test1)
+        case ast.TestAnd:
+                test1 := expr.Test1
+                test2 := expr.Test2
+                return rstate.evaluatePredicate(test1) && rstate.evaluatePredicate(test2)
+        case ast.TestOr:
+                test1 := expr.Test1
+                test2 := expr.Test2
+                return rstate.evaluatePredicate(test1) || rstate.evaluatePredicate(test2)
+        case ast.TestNot:
+                test1 := expr.Test1
+                return !rstate.evaluatePredicate(test1)
+        }
 
 	return false
 }

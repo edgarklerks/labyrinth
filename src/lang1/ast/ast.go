@@ -42,7 +42,10 @@ func NewProgram(ys interface{}, xs interface{}) (Program1,error) {
 	}
 	qs,ok := xs.(Program1)
 	if ok {
-	    qs = append(qs,y)
+			var ps []Language1
+			ps = make([]Language1, 1)
+      ps[0] = y 
+	    qs = append(ps, qs...)
 	    return qs,nil
 	} else {
 		if qs == nil {
@@ -81,6 +84,15 @@ func NewRepeat(num interface{}, exp interface{}) (Repeat,error) {
 
 }
 
+type Return struct {}
+
+func (e Return) IsLang1(){}
+func (e Return) ToString() string { return "todo" }
+
+func NewReturn() (Return, error) {
+        return Return{},nil
+}
+
 type Proc struct {
 	Name string
 	Expr Language1
@@ -109,6 +121,22 @@ func NewTest(tpe interface{}, dir interface{}) (Test, error) {
 	tpe_r := string(tpe.(*token.Token).Lit)
 	dir_r := string(dir.(*token.Token).Lit)
 	return Test{Type:tpe_r,Dir:dir_r,},nil
+}
+
+type TestGroup struct {
+    Group Predicate 
+}
+
+func (e TestGroup) IsLang1(){}
+func (e TestGroup) IsPred(){}
+func (e TestGroup) ToString() string { return "todo"}
+
+
+func NewTestGroup(test interface{}) (TestGroup, error){
+        return TestGroup{
+                Group: getPredicate(test),
+        },nil
+
 }
 
 
@@ -189,13 +217,13 @@ func (e If) ToString() string {
 func NewIf(test interface{}, ok interface{}, nok interface{}) (If, error) {
 	if nok == nil {
 		return If{
-			Test: test.(Test),
+			Test: getPredicate(test),
 			Ok: ok.(Language1),
 			Nok: Group{Prog:make([]Language1,0),},
 		},nil
 	} else {
 		return If{
-			Test: test.(Test),
+			Test: getPredicate(test),
 			Ok: ok.(Language1),
 			Nok: nok.(Language1),
 	},nil

@@ -258,7 +258,8 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
 
 		/** Lookup the next instruction **/
 		ins := rstate.program1[rstate.code_pointer_register]
-		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
+    log.Printf("Running instruction: %T", ins)
+    log.Printf("Registers: code_pointer_r: %d, repeat_r: %d, prev_dir: %d", rstate.code_pointer_register, rstate.repeat_register,rstate.prev_dir)
 
 		switch expr := (ins).(type) {
     case ast.Proc:
@@ -270,13 +271,19 @@ func (rstate RobotState) run_language1(rhook RobotHook) RobotState {
               log.Printf("No such sub program %s", name)
               panic(errors.New("No such sub program"))
       }
-			log.Printf("Entering subprogram from Call")
+			log.Printf("Entering subprogram %s from Call",name)
 			rstate_new := rstate.callProgram1(*prog)
 			rstate_new = rstate_new.run_language1(rhook)
-			log.Printf("Exiting subprogram from Call")
+			log.Printf("Exiting subprogram %s from Call",name)
+    log.Printf("Registers (before restore): code_pointer_r: %d, repeat_r: %d, prev_dir: %d", rstate_new.code_pointer_register, rstate_new.repeat_register,rstate_new.prev_dir)
 			rstate = rstate.restoreState(rstate_new)
-		log.Printf("Registers: code_pointer_r: %d, repeat_r: %d", rstate.code_pointer_register, rstate.repeat_register)
+    log.Printf("Registers (after restore): code_pointer_r: %d, repeat_r: %d, prev_dir: %d", rstate.code_pointer_register, rstate.repeat_register,rstate.prev_dir)
 			rstate = rstate.next_instruction()
+    log.Printf("Registers (after next): code_pointer_r: %d, repeat_r: %d, prev_dir: %d", rstate.code_pointer_register, rstate.repeat_register,rstate.prev_dir)
+		case ast.Return:
+      log.Printf("Returning to parent program")
+      log.Printf("Registers (Return): code_pointer_r: %d, repeat_r: %d, prev_dir: %d", rstate.code_pointer_register, rstate.repeat_register,rstate.prev_dir)
+      rstate.code_pointer_register = len(rstate.program1) - 1  
 		case ast.If:
 			test_result := rstate.evaluatePredicate(expr.Test)
 
